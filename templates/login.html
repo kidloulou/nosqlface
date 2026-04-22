@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connexion</title>
+    <style>video { width: 300px; border-radius: 10px; }</style>
+</head>
+<body>
+    <h1>Connexion</h1>
+    <form method="post">
+        <input type="email" id="login_email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Mot de passe"><br>
+        <button type="submit">Connexion classique</button>
+    </form>
+
+    <hr>
+    <h3>Ou Connexion Faciale</h3>
+    <video id="video" autoplay></video>
+    <button type="button" onclick="loginWithFace()">Scanner mon visage</button>
+    <canvas id="canvas" style="display:none;" width="400" height="300"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true }).then(s => video.srcObject = s);
+
+        async function loginWithFace() {
+            const email = document.getElementById('login_email').value;
+            if(!email) return alert("Entrez votre email d'abord");
+
+            const canvas = document.getElementById('canvas');
+            canvas.getContext('2d').drawImage(video, 0, 0, 400, 300);
+            const image = canvas.toDataURL('image/jpeg');
+
+            const response = await fetch('/login/face', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: email, face_image: image })
+            });
+
+            const result = await response.json();
+            if(result.success) window.location.href = "/";
+            else alert("Erreur: " + result.message);
+        }
+    </script>
+</body>
+</html>

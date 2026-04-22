@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inscription Faciale</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        video, canvas { border: 2px solid #333; border-radius: 10px; width: 400px; }
+        .container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Créer un compte</h1>
+    <form action="/register" method="post" class="container">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Mot de passe" required>
+
+        <p>Prenez une photo pour l'authentification faciale :</p>
+        <video id="video" autoplay></video>
+        <button type="button" onclick="takeSnapshot()">Capturer mon visage</button>
+
+        <input type="hidden" name="face_data" id="face_data">
+        <canvas id="canvas" style="display:none;" width="400" height="300"></canvas>
+
+        <div id="status">📸 Photo non prise</div>
+        <button type="submit">S'inscrire</button>
+    </form>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const faceDataInput = document.getElementById('face_data');
+        const status = document.getElementById('status');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => { alert("Erreur webcam : " + err); });
+
+        function takeSnapshot() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, 400, 300);
+            const dataURL = canvas.toDataURL('image/jpeg');
+            faceDataInput.value = dataURL;
+            status.innerText = "✅ Visage capturé !";
+        }
+    </script>
+</body>
+</html>
