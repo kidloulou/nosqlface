@@ -1,8 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #e94560;
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        a {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #e94560;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            opacity: 0.85;
+        }
+    </style>
+</head>
 <body>
-    <h1>Bienvenue, {{ email }} !</h1>
-    <p>Vous êtes connecté avec succès.</p>
-    <a href="/logout">Se déconnecter</a>
+    <div class="card">
+        <h1>Bienvenue, {{ username or email }} !</h1>
+        <p>Vous êtes connecté avec succès.</p>
+        <a href="/logout">Se déconnecter</a>
+    </div>
 </body>
 </html>

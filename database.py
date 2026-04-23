@@ -1,23 +1,23 @@
-import boto3
+import json
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+DB_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
 
-def get_db_table():
-    dynamodb = boto3.resource(
-        'dynamodb',
-        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-        region_name=os.getenv('AWS_REGION')
-    )
-    return dynamodb.Table('Users')
+def _load():
+    if not os.path.exists(DB_FILE):
+        return {}
+    with open(DB_FILE, 'r') as f:
+        return json.load(f)
+
+def _save(data):
+    with open(DB_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
 def save_user(user_data):
-    table = get_db_table()
-    table.put_item(Item=user_data)
+    db = _load()
+    db[user_data['email']] = user_data
+    _save(db)
 
 def fetch_user(email):
-    table = get_db_table()
-    response = table.get_item(Key={'email': email})
-    return response.get('Item')
+    db = _load()
+    return db.get(email)

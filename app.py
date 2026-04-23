@@ -6,18 +6,19 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-app.secret_key = "une_cle_tres_secrete_123"
+app.secret_key = os.getenv('SECRET_KEY', 'cle_secrete_dev_123')
 
 @app.route('/')
 def index():
     if 'user' in session:
-        return render_template('index.html', email=session['user'])
+        return render_template('index.html', email=session['user'], username=session.get('username', ''))
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         email = request.form.get('email')
+        username = request.form.get('username', '').strip()
         password = request.form.get('password')
         face_data = request.form.get('face_data')
 
@@ -31,6 +32,7 @@ def register():
 
         user_data = {
             'email': email,
+            'username': username,
             'password_hash': generate_password_hash(password),
             'face_encoding': encoding,
             'created_at': datetime.now().isoformat()
@@ -45,15 +47,26 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        identifier = request.form.get('identifier')  # email ou username
         password = request.form.get('password')
 
-        user = fetch_user(email)
+        user = fetch_user(identifier)
+
+        # Si pas trouvé par email, chercher par username
+        if not user:
+            from database import _load
+            db = _load()
+            for u in db.values():
+                if u.get('username', '').lower() == identifier.lower():
+                    user = u
+                    break
+
         if user and check_password_hash(user['password_hash'], password):
-            session['user'] = email
+            session['user'] = user['email']
+            session['username'] = user.get('username', user['email'])
             return redirect(url_for('index'))
 
-        flash("Email ou mot de passe incorrect.")
+        flash("Identifiant ou mot de passe incorrect.")
     return render_template('login.html')
 
 @app.route('/login/face', methods=['POST'])
@@ -63,20 +76,31 @@ def login_face():
     face_image = data.get('face_image')
 
     user = fetch_user(email)
-    if not user or 'face_encoding' not in user:
+
+    # Chercher aussi par username
+    if not user:
+        from database import _load
+        db = _load()
+        for u in db.values():
+            if u.get('username', '').lower() == email.lower():
+                user = u
+                break
+
+    if not user or not user.get('face_encoding'):
         return jsonify({"success": False, "message": "Utilisateur ou empreinte faciale inconnue"}), 404
 
     is_valid = verify_face(user['face_encoding'], face_image)
 
     if is_valid:
-        session['user'] = email
+        session['user'] = user['email']
+        session['username'] = user.get('username', user['email'])
         return jsonify({"success": True})
 
     return jsonify({"success": False, "message": "Visage non reconnu"}), 401
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    session.clear()
     return redirect(url_for('login'))
 
 if __name__ == '__main__':

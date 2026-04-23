@@ -1,29 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Inscription Faciale</title>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        video, canvas { border: 2px solid #333; border-radius: 10px; width: 400px; }
-        .container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 40px;
+            width: 420px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #e94560;
+            font-size: 1.8rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+            background: #0f3460;
+            color: #eee;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary {
+            background: #e94560;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .btn-secondary {
+            background: #0f3460;
+            color: #eee;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary:hover,
+        .btn-secondary:hover {
+            opacity: 0.85;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid #0f3460;
+        }
+
+        .divider {
+            text-align: center;
+            color: #555;
+            margin: 10px 0;
+            font-size: 0.85rem;
+        }
+
+        #status {
+            text-align: center;
+            font-size: 0.9rem;
+            margin: 8px 0;
+            color: #aaa;
+        }
+
+        #status.ok {
+            color: #4ecca3;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            color: #aaa;
+        }
+
+        .link a {
+            color: #e94560;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Créer un compte</h1>
-    <form action="/register" method="post" class="container">
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Mot de passe" required>
+    <div class="card">
+        <h1>Créer un compte</h1>
 
-        <p>Prenez une photo pour l'authentification faciale :</p>
-        <video id="video" autoplay></video>
-        <button type="button" onclick="takeSnapshot()">Capturer mon visage</button>
+        <form action="/register" method="post">
+            <input type="text" name="username" placeholder="Nom d'utilisateur (optionnel)">
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
 
-        <input type="hidden" name="face_data" id="face_data">
-        <canvas id="canvas" style="display:none;" width="400" height="300"></canvas>
+            <div class="divider">— Authentification faciale (optionnelle) —</div>
 
-        <div id="status">📸 Photo non prise</div>
-        <button type="submit">S'inscrire</button>
-    </form>
+            <video id="video" autoplay playsinline></video>
+            <button type="button" class="btn-secondary" onclick="takeSnapshot()">Capturer mon visage</button>
+            <div id="status">Aucune photo prise</div>
+
+            <input type="hidden" name="face_data" id="face_data">
+            <canvas id="canvas" style="display: none;" width="400" height="300"></canvas>
+
+            <button type="submit" class="btn-primary">S'inscrire</button>
+        </form>
+
+        <div class="link">Déjà un compte ? <a href="/login">Se connecter</a></div>
+    </div>
 
     <script>
         const video = document.getElementById('video');
@@ -32,15 +147,19 @@
         const status = document.getElementById('status');
 
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => { video.srcObject = stream; })
-            .catch(err => { alert("Erreur webcam : " + err); });
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(() => {
+                video.style.display = 'none';
+                status.textContent = 'Webcam non disponible';
+            });
 
         function takeSnapshot() {
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, 400, 300);
-            const dataURL = canvas.toDataURL('image/jpeg');
-            faceDataInput.value = dataURL;
-            status.innerText = "✅ Visage capturé !";
+            canvas.getContext('2d').drawImage(video, 0, 0, 400, 300);
+            faceDataInput.value = canvas.toDataURL('image/jpeg');
+            status.textContent = 'Visage capturé !';
+            status.className = 'ok';
         }
     </script>
 </body>
